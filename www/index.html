@@ -1,0 +1,156 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"><title>Noir Tasks</title>
+<style>
+:root{--bg:#0a0a0b;--s:#151518;--s2:#1f1f24;--sil:#c9cdd4;--gold:#d4af37;--red:#ff5e6c;--teal:#2dd4bf;--vio:#a78bfa;--dim:#70747d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--sil);font:15px system-ui,sans-serif}
+#app{height:100dvh;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+#top{display:flex;gap:8px;padding:12px;overflow-x:auto;scrollbar-width:none;flex:none}
+.chip{flex:none;padding:7px 14px;border-radius:20px;background:var(--s);border:1px solid #2a2a30}
+.chip.on{background:var(--gold);color:#000;border-color:var(--gold);font-weight:600}
+#main{flex:1;overflow-y:auto;padding:8px 12px 20px}
+#nav{display:flex;border-top:1px solid #222;background:var(--s);padding-bottom:env(safe-area-inset-bottom)}
+#nav div{flex:1;text-align:center;padding:9px 0;font-size:12px;color:var(--dim)}
+#nav div.on{color:var(--gold)}#nav span{display:block;font-size:20px}
+.add{display:flex;gap:8px;margin-bottom:12px}
+input[type=text]{flex:1;background:var(--s);border:1px solid #2a2a30;border-radius:12px;color:var(--sil);padding:12px;font-size:15px;outline:0;min-width:0}
+input[type=text]:focus{border-color:var(--gold)}
+button{background:var(--gold);border:0;border-radius:12px;color:#000;font-weight:700;padding:12px 18px;font-size:18px}
+.add button{padding:0 16px}
+.card{background:var(--s);border-radius:14px;margin-bottom:8px;border:1px solid #232328;overflow:hidden}
+.row{display:flex;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.main{flex:none;width:100%;display:flex;align-items:center;gap:12px;padding:14px;scroll-snap-align:start}
+.acts{display:flex;flex:none;scroll-snap-align:end}
+.acts b{width:64px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--c);background:var(--s2);border-left:1px solid var(--bg)}
+.chk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--sil)}
+.chk.on{background:var(--teal);border-color:var(--teal)}
+.tt{flex:1;min-width:0}.tt small{color:var(--dim)}
+.dn{text-decoration:line-through;color:var(--dim)}
+.subs{padding:0 14px 12px 48px}
+.sub{display:flex;align-items:center;gap:10px;padding:6px 0}.sub .chk{width:18px;height:18px}
+.seg{display:flex;background:var(--s);border-radius:12px;padding:3px;margin-bottom:10px}
+.seg span{flex:1;text-align:center;padding:8px;border-radius:10px;text-transform:capitalize}
+.seg .on{background:var(--gold);color:#000;font-weight:600}
+.nv{display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px;font-size:17px}
+.nv b{padding:4px 16px;font-size:22px;color:var(--gold)}
+.g7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.g7 i{font-style:normal;text-align:center;padding:9px 0;border-radius:10px;font-size:14px}
+.wd{color:var(--dim);font-size:12px!important}
+.day{background:var(--s)}.day.oth{opacity:.35}.day.td{color:var(--teal);font-weight:700}.day.sel{background:var(--gold);color:#000}
+.day u{display:block;height:6px;line-height:6px;text-decoration:none;color:var(--vio)}
+.mini{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s);border-radius:10px;margin-bottom:6px}
+.mini small{margin-left:auto;color:var(--dim)}
+.wk h3{margin:12px 0 6px;font-size:13px;font-weight:600}.wk h3.sel{color:var(--gold)}
+.l0{background:#17171b}.l1{background:#4a3f12}.l2{background:#7d6818}.l3{background:#b8962a;color:#000}.l4{background:#ffd54a;color:#000}
+.yr{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,15px);gap:3px;overflow-x:auto;padding-bottom:8px}
+.yr i{width:15px;height:15px;border-radius:3px}
+.stat{display:flex;gap:10px;margin:12px 0}.stat div{flex:1;background:var(--s);border-radius:12px;padding:12px;text-align:center;font-size:12px}.stat b{display:block;font-size:22px;color:var(--gold)}
+#ov{display:none;position:fixed;inset:0;background:#0a0a0bf5;z-index:9;flex-direction:column;align-items:center;justify-content:center;gap:22px}
+#ft{font-size:72px;color:var(--vio);font-variant-numeric:tabular-nums}
+.empty{text-align:center;color:var(--dim);margin:40px 0;line-height:1.6}
+</style></head><body>
+<div id="app"><div id="top"></div><div id="main"></div>
+<div id="nav"><div data-t="tasks" onclick="tab='tasks';render()"><span>☑</span>Tasks</div><div data-t="cal" onclick="tab='cal';render()"><span>▦</span>Calendar</div><div data-t="heat" onclick="tab='heat';render()"><span>◼</span>Heatmap</div></div></div>
+<div id="ov"></div><input type="date" id="dp" style="position:fixed;opacity:0;pointer-events:none;top:0">
+<script>
+const $=s=>document.querySelector(s),K='noir1',MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+S=S||{cats:['Personal','Work'],tasks:[]};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const ds=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const pd=s=>{const[a,b,c]=s.split('-');return new Date(a,b-1,c)};
+const add=(s,n)=>{const d=pd(s);d.setDate(d.getDate()+n);return ds(d)};
+const T=()=>ds(new Date()),id=()=>Math.random().toString(36).slice(2,9),by=i=>S.tasks.find(t=>t.id==i);
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=s=>pd(s).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+let cat=S.cats[0],tab='tasks',cv='month',hv='month',sel=T(),hd=T(),open=null,pend=null,F=null,tm;
+
+function render(){
+ const top=$('#top');top.style.display=tab=='tasks'?'flex':'none';
+ if(tab=='tasks')top.innerHTML=S.cats.map((c,i)=>`<div class="chip ${c==cat?'on':''}" onclick="cat=S.cats[${i}];open=null;render()">${esc(c)}${c==cat&&i>1?` <span onclick="event.stopPropagation();rc(${i})">✕</span>`:''}</div>`).join('')+'<div class="chip" onclick="nc()">＋</div>';
+ $('#main').innerHTML=tab=='tasks'?tasks():tab=='cal'?cal():heat();
+ document.querySelectorAll('#nav div').forEach(e=>e.classList.toggle('on',e.dataset.t==tab));
+}
+function nc(){const n=(prompt('New category name')||'').trim();if(n&&!S.cats.includes(n)){S.cats.push(n);cat=n;save();render()}}
+function rc(i){if(confirm('Delete "'+S.cats[i]+'" and its tasks?')){S.tasks=S.tasks.filter(t=>t.cat!=S.cats[i]);S.cats.splice(i,1);cat=S.cats[0];save();render()}}
+
+function tasks(){
+ const l=S.tasks.filter(t=>t.cat==cat).sort((a,b)=>(a.done-b.done)||(b.star-a.star)||((a.due||'9').localeCompare(b.due||'9')));
+ return addBox('ni','Add a task to '+cat+'…')+(l.map(row).join('')||'<div class="empty">Nothing here yet.<br>Add a task above, then swipe it left for actions.</div>');
+}
+function addBox(i,ph,due){return `<div class="add"><input type="text" id="${i}" placeholder="${esc(ph)}" onkeydown="if(event.key=='Enter')at(this,${due?`'${due}'`:'null'})"><button onclick="at($('#${i}'),${due?`'${due}'`:'null'})">＋</button></div>`}
+function at(inp,due){const v=inp.value.trim();if(!v)return;const i=inp.id;S.tasks.push({id:id(),t:v,cat,star:false,due:due,done:false,doneAt:null,subs:[],focus:0});save();render();$('#'+i)&&$('#'+i).focus()}
+function row(t){
+ const sd=t.subs.filter(x=>x.done).length;
+ return `<div class="card"><div class="row"><div class="main"><div class="chk ${t.done?'on':''}" onclick="tog('${t.id}')"></div>
+ <div class="tt" onclick="op('${t.id}')"><div class="${t.done?'dn':''}">${t.star?'<span style="color:var(--gold)">★</span> ':''}${esc(t.t)}</div>
+ <small>${t.due?'📅 '+t.due+'  ':''}${t.subs.length?sd+'/'+t.subs.length+' subtasks  ':''}${t.focus?'⏱ '+t.focus+'m':''}</small></div></div>
+ <div class="acts"><b style="--c:var(--gold)" onclick="star('${t.id}')">★</b><b style="--c:var(--teal)" onclick="due('${t.id}')">📅</b><b style="--c:var(--vio)" onclick="foc('${t.id}')">⏱</b><b style="--c:var(--red)" onclick="del('${t.id}')">🗑</b></div></div>
+ ${open==t.id?`<div class="subs">${t.subs.map(s=>`<div class="sub"><div class="chk ${s.done?'on':''}" onclick="ts('${t.id}','${s.id}')"></div><span class="${s.done?'dn':''}" style="flex:1">${esc(s.t)}</span><span style="color:var(--dim)" onclick="rs('${t.id}','${s.id}')">✕</span></div>`).join('')}
+ <div class="add" style="margin:6px 0 0"><input type="text" id="si" placeholder="Add subtask…" onkeydown="if(event.key=='Enter')as('${t.id}',this)"></div></div>`:''}</div>`;
+}
+function tog(i){const t=by(i);t.done=!t.done;t.doneAt=t.done?T():null;save();render()}
+function op(i){open=open==i?null:i;render()}
+function star(i){const t=by(i);t.star=!t.star;save();render()}
+function del(i){if(confirm('Delete this task?')){S.tasks=S.tasks.filter(t=>t.id!=i);save();render()}}
+function ts(i,j){const s=by(i).subs.find(x=>x.id==j);s.done=!s.done;save();render()}
+function rs(i,j){const t=by(i);t.subs=t.subs.filter(x=>x.id!=j);save();render()}
+function as(i,inp){const v=inp.value.trim();if(!v)return;by(i).subs.push({id:id(),t:v,done:false});save();render();$('#si').focus()}
+function due(i){pend=i;const d=$('#dp');d.value=by(i).due||T();try{d.showPicker()}catch(e){d.click()}}
+$('#dp').onchange=e=>{if(pend&&e.target.value){by(pend).due=e.target.value;save();render()}};
+
+/* focus timer */
+const mmss=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function foc(i){F={id:i,len:1500,left:1500,run:false};dF()}
+function dF(){const o=$('#ov');if(!F){o.style.display='none';return}const t=by(F.id);o.style.display='flex';
+ o.innerHTML=`<div style="color:var(--gold);font-size:18px;padding:0 24px;text-align:center">${esc(t.t)}</div><div id="ft">${mmss(F.left)}</div>
+ <div style="display:flex;gap:12px"><button onclick="fa(-5)">−5</button><button onclick="fr()" style="background:var(--vio);min-width:110px">${F.run?'Pause':'Start'}</button><button onclick="fa(5)">＋5</button></div>
+ <div style="color:var(--dim)">${t.focus||0} min focused so far</div><button style="background:var(--s2);color:var(--sil)" onclick="fx()">Close</button>`}
+function fa(m){if(!F.run){F.len=Math.max(300,F.len+m*60);F.left=F.len;dF()}}
+function fr(){if(F.run){clearInterval(tm);F.run=false;dF();return}F.run=true;F.end=Date.now()+F.left*1000;tm=setInterval(()=>{F.left=Math.max(0,Math.round((F.end-Date.now())/1000));$('#ft').textContent=mmss(F.left);if(!F.left){clearInterval(tm);F.run=false;by(F.id).focus+=Math.round(F.len/60);F.left=F.len;save();beep();dF();render()}},250);dF()}
+function fx(){clearInterval(tm);const e=Math.floor((F.len-F.left)/60);if(e>0){by(F.id).focus+=e;save()}F=null;dF();render()}
+function beep(){try{const a=new AudioContext(),o=a.createOscillator();o.connect(a.destination);o.frequency.value=880;o.start();o.stop(a.currentTime+.6)}catch(e){}navigator.vibrate&&navigator.vibrate([300,100,300])}
+
+/* calendar */
+const on=s=>S.tasks.filter(t=>t.due==s);
+const mini=t=>`<div class="mini"><div class="chk ${t.done?'on':''}" onclick="tog('${t.id}')"></div><span class="${t.done?'dn':''}">${t.star?'★ ':''}${esc(t.t)}</span><small>${esc(t.cat)}</small></div>`;
+const seg=(v,k,f)=>`<div class="seg">${v.map(x=>`<span class="${k==x?'on':''}" onclick="${f}('${x}')">${x}</span>`).join('')}</div>`;
+const nv=(t,f)=>`<div class="nv"><b onclick="${f}(-1)">‹</b><span>${t}</span><b onclick="${f}(1)">›</b></div>`;
+function cg(n){const d=pd(sel);if(cv=='month'){d.setMonth(d.getMonth()+n,1);sel=ds(d)}else sel=add(sel,n*(cv=='week'?7:1));render()}
+function cal(){
+ let h=seg(['day','week','month'],cv,'sv'),d=pd(sel);
+ if(cv=='month'){
+  const f=new Date(d.getFullYear(),d.getMonth(),1),st=add(ds(f),-f.getDay());
+  h+=nv(MON[d.getMonth()]+' '+d.getFullYear(),'cg')+'<div class="g7">'+'SMTWTFS'.split('').map(x=>`<i class="wd">${x}</i>`).join('');
+  for(let i=0;i<42;i++){const s=add(st,i),x=pd(s);h+=`<i class="day ${s==sel?'sel':''} ${s==T()?'td':''} ${x.getMonth()!=d.getMonth()?'oth':''}" onclick="sel='${s}';render()">${x.getDate()}<u>${on(s).length?'•':''}</u></i>`}
+  h+='</div><div class="wk"><h3 class="sel">'+fmt(sel)+'</h3>'+on(sel).map(mini).join('')+'</div>';
+ }else if(cv=='week'){
+  const st=add(sel,-d.getDay());h+=nv(fmt(st)+' – '+fmt(add(st,6)),'cg');
+  for(let i=0;i<7;i++){const s=add(st,i);h+=`<div class="wk"><h3 class="${s==sel?'sel':''}" onclick="sel='${s}';render()">${fmt(s)}${s==T()?' · today':''}</h3>${on(s).map(mini).join('')||'<small style="color:var(--dim)">Free</small>'}</div>`}
+ }else h+=nv(fmt(sel),'cg')+'<div class="wk">'+(on(sel).map(mini).join('')||'<div class="empty">Nothing due this day.</div>')+'</div>';
+ return h+'<div style="margin-top:12px">'+addBox('di','Add to '+fmt(sel)+' ('+cat+')…',sel)+'</div>';
+}
+function sv(v){cv=v;render()}
+
+/* heatmap */
+function hg(n){const d=pd(hd);hv=='month'?d.setMonth(d.getMonth()+n,1):d.setFullYear(d.getFullYear()+n,0,1);hd=ds(d);render()}
+function hs(v){hv=v;render()}
+function heat(){
+ const c={};S.tasks.forEach(t=>t.doneAt&&(c[t.doneAt]=(c[t.doneAt]||0)+1));
+ const lv=n=>n?n<2?1:n<3?2:n<5?3:4:0,d=pd(hd);let tot=0,days=0,best=0,cells='';
+ const cell=(s,inr,txt)=>{const n=inr?c[s]||0:0;if(inr&&n){tot+=n;days++;best=Math.max(best,n)}return `<i class="l${lv(n)}" style="${inr?'':'visibility:hidden'}">${txt?pd(s).getDate():''}</i>`};
+ let h=seg(['month','year'],hv,'hs');
+ if(hv=='month'){
+  const f=new Date(d.getFullYear(),d.getMonth(),1),st=add(ds(f),-f.getDay());
+  for(let i=0;i<42;i++){const s=add(st,i);cells+=cell(s,pd(s).getMonth()==d.getMonth(),1)}
+  h+=nv(MON[d.getMonth()]+' '+d.getFullYear(),'hg')+'<div class="g7">'+'SMTWTFS'.split('').map(x=>`<i class="wd">${x}</i>`).join('')+cells+'</div>';
+ }else{
+  const y=d.getFullYear(),j=new Date(y,0,1),end=y+'-12-31';let s=add(ds(j),-j.getDay());
+  while(s<=end||pd(s).getDay()!=0){cells+=cell(s,s.slice(0,4)==y,0);s=add(s,1)}
+  h+=nv(y,'hg')+'<div class="yr">'+cells+'</div>';
+ }
+ return h+`<div class="stat"><div><b>${tot}</b>completed</div><div><b>${days}</b>active days</div><div><b>${best}</b>best day</div></div>
+ <div style="display:flex;gap:4px;align-items:center;color:var(--dim);font-size:12px">Less ${[0,1,2,3,4].map(x=>`<i class="l${x}" style="width:14px;height:14px;border-radius:3px"></i>`).join('')} More</div>`;
+}
+render();
+</script></body></html>
